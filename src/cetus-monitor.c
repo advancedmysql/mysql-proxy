@@ -761,14 +761,8 @@ static void group_replication_detect(network_backends_t *bs,
         max_gtid_set = gtid_set;
         biggest_gtid_node_addr = backend_addr;
       } else if (compared_value == GTID_EQUAL) {
-        if (monitor->chas->is_backend_multi_write == 0) {
-          if (backend->type == BACKEND_TYPE_RW) {
-            biggest_gtid_node_addr = backend_addr;
-          }
-        } else {
-          if (strcmp(biggest_gtid_node_addr, backend_addr) > 0) {
-            biggest_gtid_node_addr = backend_addr;
-          }
+        if (backend->type == BACKEND_TYPE_RW) {
+          biggest_gtid_node_addr = backend_addr;
         }
         free_gtid_set(gtid_set);
       } else if (compared_value == GTID_LESSER) {
@@ -805,7 +799,7 @@ static void group_replication_detect(network_backends_t *bs,
 
   if (write_num > 1) {
     monitor->chas->multi_write = 1;
-    g_debug("group_replication detect mgr group multi-write");
+    g_info("group_replication detect mgr group multi-write");
   } else {
     monitor->chas->multi_write = 0;
   }

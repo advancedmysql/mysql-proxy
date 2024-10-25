@@ -33,6 +33,20 @@
 #define COM_RESET_CONNECTION 0x1F
 #endif
 
+#ifndef SERVER_SESSION_STATE_CHANGED
+#define SERVER_SESSION_STATE_CHANGED (1UL << 14)
+typedef enum
+{
+  SESSION_TRACK_SYSTEM_VARIABLES,              /* Session system variables */
+  SESSION_TRACK_SCHEMA,                        /* Current schema */
+  SESSION_TRACK_STATE_CHANGE,                  /* track session state changes */
+  SESSION_TRACK_GTIDS,
+  SESSION_TRACK_TRANSACTION_CHARACTERISTICS,   /* Transaction chistics */
+  SESSION_TRACK_TRANSACTION_STATE              /* Transaction state */
+} enum_session_state_type;
+
+#endif
+
 /**
  * mid-level protocol 
  *

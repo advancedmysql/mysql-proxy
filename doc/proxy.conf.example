@@ -44,5 +44,3 @@ log-backtrace-on-crash=true
 enable-tcp-stream=true
 enable-fast-stream=true
 
-# For Group Replication
-group-replication-mode=1

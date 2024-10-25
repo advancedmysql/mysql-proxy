@@ -110,7 +110,6 @@ struct chassis_frontend_t {
   int is_back_compressed;
   int is_client_compress_support;
   int is_reduce_conns;
-  int is_backend_multi_write;
   int long_query_time;
   int cetus_max_allowed_packet;
   int client_idle_timeout;
@@ -148,8 +147,6 @@ struct chassis_frontend_t {
 
   char *remote_config_url;
   char *trx_isolation_level;
-
-  gint group_replication_mode;
 
   guint sql_log_bufsize;
   gchar *sql_log_switch;
@@ -190,12 +187,10 @@ struct chassis_frontend_t *chassis_frontend_new(void) {
   frontend->cetus_max_allowed_packet = MAX_ALLOWED_PACKET_DEFAULT;
   frontend->disable_dns_cache = 0;
 
-  frontend->is_backend_multi_write = 0;
   frontend->is_tcp_stream_enabled = 1;
   frontend->is_fast_stream_enabled = 0;
   frontend->check_sql_loosely = 0;
   frontend->is_sql_special_processed = 0;
-  frontend->group_replication_mode = 0;
   frontend->sql_log_bufsize = 0;
   frontend->sql_log_switch = NULL;
   frontend->sql_log_prefix = NULL;
@@ -424,12 +419,6 @@ int chassis_frontend_set_chassis_options(struct chassis_frontend_t *frontend,
                       NULL, NULL, show_reduce_connections,
                       SHOW_OPTS_PROPERTY | SAVE_OPTS_PROPERTY);
 
-  chassis_options_add(opts, "backend-multi-write", 0, 0, OPTION_ARG_NONE,
-                      &(frontend->is_backend_multi_write),
-                      "Reduce connections when idle connection num is too high",
-                      NULL, NULL, show_backend_multi_write,
-                      SHOW_OPTS_PROPERTY | SAVE_OPTS_PROPERTY);
-
   chassis_options_add(opts, "enable-tcp-stream", 0, 0, OPTION_ARG_NONE,
                       &(frontend->is_tcp_stream_enabled), "", NULL, NULL,
                       show_enable_tcp_stream,
@@ -482,13 +471,6 @@ int chassis_frontend_set_chassis_options(struct chassis_frontend_t *frontend,
                       "transaction isolation level, default: REPEATABLE READ",
                       "<string>", NULL, show_trx_isolation_level,
                       SHOW_OPTS_PROPERTY);
-  chassis_options_add(
-      opts, "group-replication-mode", 0, 0, OPTION_ARG_INT,
-      &(frontend->group_replication_mode),
-      "mysql group replication mode, 0:not support(defaults) 1:support single "
-      "primary mode 2:support multi primary mode(not implement yet)",
-      "<int>", assign_group_replication, show_group_replication_mode,
-      ALL_OPTS_PROPERTY);
   chassis_options_add(
       opts, "sql-log-bufsize", 0, 0, OPTION_ARG_INT,
       &(frontend->sql_log_bufsize), "the buffer size of the log", "<int>", NULL,
@@ -621,10 +603,6 @@ static void init_parameters(struct chassis_frontend_t *frontend, chassis *srv) {
   g_message("set client_found_rows %s",
             srv->client_found_rows ? "true" : "false");
 
-  srv->is_backend_multi_write = frontend->is_backend_multi_write;
-  if (srv->is_backend_multi_write) {
-    g_message("%s:backend multi-write is set to true", G_STRLOC);
-  }
   srv->is_tcp_stream_enabled = frontend->is_tcp_stream_enabled;
   if (srv->is_tcp_stream_enabled) {
     g_message("%s:tcp stream enabled", G_STRLOC);
@@ -1057,13 +1035,7 @@ int main_cmdline(int argc, char **argv) {
     chassis_unix_daemonize();
   }
 
-  if (frontend->group_replication_mode != 0 &&
-      frontend->group_replication_mode != 1) {
-    g_critical("group-replication-mode is invalid, current value is %d",
-               frontend->group_replication_mode);
-    GOTO_EXIT(EXIT_FAILURE);
-  }
-  srv->group_replication_mode = frontend->group_replication_mode;
+  srv->group_replication_mode = 1;
 
   /*
    * log the versions of all loaded plugins
