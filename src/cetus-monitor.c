@@ -548,7 +548,8 @@ group_replication_retrieve_gtid(struct chassis *srv, MYSQL *conn,
 
 #ifdef USE_GLIB_DEBUG_LOG
   if (executed_gtid_set) {
-    for (int i = 0; i < executed_gtid_set->num; i++) {
+    int i;
+    for (i = 0; i < executed_gtid_set->num; i++) {
       g_debug("gtid from backend:%s, interval:%d, min:%ld, max:%ld",
               backend_addr, i + 1, executed_gtid_set->gtids[i].min,
               executed_gtid_set->gtids[i].max);

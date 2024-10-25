@@ -2902,8 +2902,10 @@ static int process_self_event(server_connection_state_t *con, int events,
       con->state = ST_ASYNC_ERROR;
     } else if (b != 0) {
       con->server->to_read = b;
+      g_debug("%s: ioctl ev:%p,read byte:%d", G_STRLOC, (&con->server->event), b);
     } else {
       if (errno == 0 || errno == EWOULDBLOCK) {
+        g_debug("%s: ioctl ev:%p,read byte:%d, error:%d", G_STRLOC, (&con->server->event), b, errno);
         return 0;
       } else {
         g_warning(
@@ -3098,6 +3100,9 @@ static void network_mysqld_self_con_handle(int event_fd, short events,
   chassis *srv = con->srv;
 
   if (!process_self_event(con, events, event_fd)) {
+    con->backend->connected_clients--;
+    g_debug("%s: connected_clients sub, now:%d for con:%p", G_STRLOC,
+            con->backend->connected_clients, con);
     return;
   }
 
