@@ -3103,6 +3103,7 @@ static void network_mysqld_self_con_handle(int event_fd, short events,
     con->backend->connected_clients--;
     g_debug("%s: connected_clients sub, now:%d for con:%p", G_STRLOC,
             con->backend->connected_clients, con);
+    network_mysqld_self_con_free(con);
     return;
   }
 
